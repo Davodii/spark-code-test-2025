@@ -45,9 +45,14 @@ components:
       type: object
       additionalProperties: false
       required:
+        # Added ID to identify each item
+        - id
         - title
         - description
       properties:
+        id:
+          type: integer
+          example: 1
         title:
           type: string
           example: Go for a jog

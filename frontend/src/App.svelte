@@ -12,6 +12,8 @@
         return;
       }
 
+      console.log("Fetched todos from server");
+
       todos = await response.json();
     } catch (e) {
       console.error("Could not connect to server. Ensure it is running.", e);
