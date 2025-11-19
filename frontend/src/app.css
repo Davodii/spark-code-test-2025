@@ -22,6 +22,13 @@ button:active {
   background-color: #5a93f0;
 }
 
+/* Change the colour of the button when it disabled */
+button:disabled,
+button:disabled:hover,
+button:disabled:active {
+    background-color: #132643;
+}
+
 input {
   margin-bottom: 10px;
   font-size: 20px;

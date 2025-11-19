@@ -27,14 +27,14 @@
     });
 
     if (response.status !== 200) {
-        console.log("Error adding a new todo item. ")
+        console.log("Error adding a new todo item. ");
     }
 
     const result = await response.json();
 
-    console.log("Added a new item to the list");
-
     // Add the new item to the client list
+    // Since todos is initialised with $state() this will
+    // update the todo-list div.
     todos.push(result);
   }
 
@@ -46,14 +46,7 @@
         return;
       }
 
-      const result = await response.json();
-
-      // If we set todos to the response directly, then we would set
-      // todos to null. This would be a problem when we send POST
-      // requests and expect to be able to push() to todos.
-      if (result !== null) {
-        todos = result;
-      }
+      todos = await response.json();
     } catch (e) {
       console.error("Could not connect to server. Ensure it is running.", e);
     }
@@ -63,6 +56,12 @@
   $effect(() => {
     fetchTodos();
   });
+
+  function isButtonDisabled() : boolean {
+    if (title !== "" && description !== "") 
+        return false;
+    return true;
+  }
 </script>
 
 <main class="app">
@@ -80,7 +79,7 @@
   <form onsubmit={handleSubmit} class="todo-list-form">
     <input bind:value={title} placeholder="Title" name="title" />
     <input bind:value={description} placeholder="Description" name="description" />
-    <button>Add Todo</button>
+    <button disabled={isButtonDisabled()}>Add Todo</button>
   </form>
 </main>
 

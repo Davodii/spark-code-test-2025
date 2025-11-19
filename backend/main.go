@@ -17,15 +17,9 @@ type ToDoItem struct {
 	Description string `json:"description"`
 }
 
-var toDolist []ToDoItem
+var toDolist = make([]ToDoItem, 0)
 
 func main() {
-	// Adding some dummy date
-	// toDolist = append(toDolist, ToDoItem{
-	// 	Title:       "A",
-	// 	Description: "B",
-	// })
-
 	// Set the http handler function
 	http.HandleFunc("/", ToDoListHandler)
 
@@ -35,14 +29,12 @@ func main() {
 
 func ToDoListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	// The OPTIONS method is for preflight
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	// Set the content type to JSON
 	w.Header().Set("Content-Type", "application/json")
-
-	// Testing so just print
-	// io.WriteString(w, "BELLO!\n")
 
 	switch r.Method {
 	case http.MethodOptions:
@@ -54,6 +46,7 @@ func ToDoListHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		// Encode the items array to JSON
 		json.NewEncoder(w).Encode(toDolist)
+		return
 	case http.MethodPost:
 		// Parse the JSON into a ToDoItem struct
 		var newItem ToDoItem
@@ -68,6 +61,14 @@ func ToDoListHandler(w http.ResponseWriter, r *http.Request) {
 			// Retturn a 400 error if the JSON is invalid
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
+		}
+
+		if newItem.Title == "" {
+			http.Error(w, "Title is required", http.StatusBadRequest)
+		}
+
+		if newItem.Description == "" {
+			http.Error(w, "Description is required", http.StatusBadRequest)
 		}
 
 		// Store the new item in toDoList
