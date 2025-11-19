@@ -3,6 +3,40 @@
   import type { TodoItem } from "./lib/types";
 
   let todos: TodoItem[] = $state([]);
+  let title: String = $state("");
+  let description: String = $state("");
+
+  async function handleSubmit(e: SubmitEvent) {
+    // Prevent default submit behaviour
+    e.preventDefault();
+
+    const data = {
+        title,
+        description,
+    };
+
+    // Send a POST request
+    const response = await fetch("http://localhost:8080/", {
+        method: "POST",
+        headers: {
+            // Content-Type is application/json as 
+            // specififed in openAPI.yaml
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (response.status !== 200) {
+        console.log("Error adding a new todo item. ")
+    }
+
+    const result = await response.json();
+
+    console.log("Added a new item to the list");
+
+    // Add the new item to the client list
+    todos.push(result);
+  }
 
   async function fetchTodos() {
     try {
@@ -12,9 +46,14 @@
         return;
       }
 
-      console.log("Fetched todos from server");
+      const result = await response.json();
 
-      todos = await response.json();
+      // If we set todos to the response directly, then we would set
+      // todos to null. This would be a problem when we send POST
+      // requests and expect to be able to push() to todos.
+      if (result !== null) {
+        todos = result;
+      }
     } catch (e) {
       console.error("Could not connect to server. Ensure it is running.", e);
     }
@@ -38,9 +77,9 @@
   </div>
 
   <h2 class="todo-list-form-header">Add a Todo</h2>
-  <form class="todo-list-form">
-    <input placeholder="Title" name="title" />
-    <input placeholder="Description" name="description" />
+  <form onsubmit={handleSubmit} class="todo-list-form">
+    <input bind:value={title} placeholder="Title" name="title" />
+    <input bind:value={description} placeholder="Description" name="description" />
     <button>Add Todo</button>
   </form>
 </main>

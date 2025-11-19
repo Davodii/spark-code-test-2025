@@ -13,17 +13,19 @@ type ToDoItem struct {
 	// Also, struct tags are needed to map the lowercase
 	// JSON keys to the struct fields
 
-	// Unique identifier for the to-do item
-	ID int `json:"id"`
-
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
 
-var toDolist map[int]ToDoItem = make(map[int]ToDoItem)
-var currentID int = 1
+var toDolist []ToDoItem
 
 func main() {
+	// Adding some dummy date
+	// toDolist = append(toDolist, ToDoItem{
+	// 	Title:       "A",
+	// 	Description: "B",
+	// })
+
 	// Set the http handler function
 	http.HandleFunc("/", ToDoListHandler)
 
@@ -33,6 +35,8 @@ func main() {
 
 func ToDoListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	// Set the content type to JSON
 	w.Header().Set("Content-Type", "application/json")
@@ -41,20 +45,23 @@ func ToDoListHandler(w http.ResponseWriter, r *http.Request) {
 	// io.WriteString(w, "BELLO!\n")
 
 	switch r.Method {
-	case http.MethodGet:
-		// Convert the toDoList map to a slice
-		items := make([]ToDoItem, 0, len(toDolist))
-		for _, item := range toDolist {
-			items = append(items, item)
-		}
+	case http.MethodOptions:
+		// The application/json Content-Type header means
+		// the browser does a preflight. Need to respond
+		// with OK to allow for communication.
 
+		w.WriteHeader(http.StatusOK)
+	case http.MethodGet:
 		// Encode the items array to JSON
-		json.NewEncoder(w).Encode(items)
+		json.NewEncoder(w).Encode(toDolist)
 	case http.MethodPost:
 		// Parse the JSON into a ToDoItem struct
 		var newItem ToDoItem
 
 		dec := json.NewDecoder(r.Body)
+
+		// For testing purposes, print that we have a POST request
+		// fmt.Println("POSTing")
 
 		err := dec.Decode(&newItem)
 		if err != nil {
@@ -63,16 +70,13 @@ func ToDoListHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Assign a unique ID to the new item
-		newItem.ID = currentID
-		currentID++
-
-		// Store the new item in the toDoList map
-		toDolist[newItem.ID] = newItem
+		// Store the new item in toDoList
+		toDolist = append(toDolist, newItem)
 
 		// Return the created item as JSON
 		json.NewEncoder(w).Encode(newItem)
 	default:
+		// Method was not GET or POST
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
